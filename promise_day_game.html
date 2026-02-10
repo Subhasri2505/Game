@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promise Day for Dharun 💕</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Floating hearts animation */
+        .heart-bg {
+            position: fixed;
+            top: -10%;
+            left: 0;
+            width: 100%;
+            height: 120%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .heart {
+            position: absolute;
+            font-size: 20px;
+            animation: float-up 10s infinite;
+            opacity: 0;
+        }
+
+        @keyframes float-up {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.8;
+            }
+            90% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+        }
+
+        .header .subtitle {
+            font-size: 1.3em;
+            opacity: 0.95;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .intro-screen, .game-screen, .result-screen {
+            display: none;
+        }
+
+        .intro-screen.active, .game-screen.active, .result-screen.active {
+            display: block;
+        }
+
+        .intro-content {
+            text-align: center;
+        }
+
+        .intro-content h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .intro-content p {
+            font-size: 1.1em;
+            color: #555;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(245, 87, 108, 0.6);
+        }
+
+        .game-area {
+            position: relative;
+            height: 400px;
+            background: linear-gradient(180deg, #ffecd2 0%, #fcb69f 100%);
+            border-radius: 15px;
+            margin: 20px 0;
+            overflow: hidden;
+            border: 3px solid #f5576c;
+        }
+
+        .player {
+            position: absolute;
+            bottom: 20px;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            transition: left 0.1s;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .falling-promise {
+            position: absolute;
+            top: -50px;
+            width: 70px;
+            height: 70px;
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            animation: fall linear;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            border: 2px solid #f5576c;
+        }
+
+        @keyframes fall {
+            to {
+                top: 100%;
+            }
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        .stat-item {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .promises-collected {
+            margin-top: 20px;
+        }
+
+        .promises-collected h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .promise-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .promise-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            animation: popIn 0.3s ease-out;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .result-content {
+            text-align: center;
+        }
+
+        .result-content h2 {
+            color: #f5576c;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .final-score {
+            font-size: 3em;
+            color: #667eea;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .love-message {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-size: 1.2em;
+            color: #333;
+            line-height: 1.8;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .controls-info {
+            text-align: center;
+            margin: 15px 0;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .game-area {
+                height: 350px;
+            }
+            
+            .promise-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="heart-bg" id="heartBg"></div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>💝 Promise Day Special 💝</h1>
+            <p class="subtitle">A Love Game for Dharun</p>
+        </div>
+
+        <div class="game-container">
+            <!-- Intro Screen -->
+            <div class="intro-screen active">
+                <div class="intro-content">
+                    <h2>Hey Dharun! 💕</h2>
+                    <p>
+                        This Promise Day is extra special because it's all about US! 
+                        I've filled the sky with promises of love, laughter, and forever moments. 
+                        Your mission? Catch as many promises as you can in 60 seconds! 
+                        Each promise represents something beautiful I promise to you. 
+                        Ready to see how many promises our love can hold? 💖
+                    </p>
+                    <button class="btn" onclick="startGame()">Start the Promise Hunt! 🎮</button>
+                </div>
+            </div>
+
+            <!-- Game Screen -->
+            <div class="game-screen">
+                <div class="stats">
+                    <div class="stat-item">⏱️ Time: <span id="timer">60</span>s</div>
+                    <div class="stat-item">💝 Caught: <span id="score">0</span></div>
+                </div>
+                <div class="controls-info">
+                    🖱️ Move your mouse or 👆 tap to catch promises!
+                </div>
+                <div class="game-area" id="gameArea">
+                    <div class="player" id="player">💑</div>
+                </div>
+            </div>
+
+            <!-- Result Screen -->
+            <div class="result-screen">
+                <div class="result-content">
+                    <h2>Game Over, My Love! 💕</h2>
+                    <div class="final-score">
+                        You caught <span id="finalScore">0</span> promises!
+                    </div>
+                    <div class="love-message" id="loveMessage"></div>
+                    <div class="promises-collected">
+                        <h3>Promises I Make to You, Dharun:</h3>
+                        <div class="promise-list" id="promiseList"></div>
+                    </div>
+                    <button class="btn" onclick="restartGame()" style="margin-top: 20px;">Play Again 💖</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Promise messages
+        const promises = [
+            "I'll always make you smile 😊",
+            "Late night talks forever 🌙",
+            "Your happiness is my priority 💖",
+            "I'll support your dreams 🌟",
+            "Adventure together always 🗺️",
+            "Endless hugs incoming 🤗",
+            "Your secrets are safe 🤐",
+            "I'll cook for you 🍝",
+            "Movie nights together 🎬",
+            "I'll hold your hand forever 🤝",
+            "Dance in the rain with you ☔",
+            "Laugh at your jokes always 😄",
+            "Be your biggest cheerleader 📣",
+            "Random surprises await 🎁",
+            "I'll listen to you always 👂",
+            "Travel the world together ✈️",
+            "Morning coffee dates ☕",
+            "I'll remember important dates 📅",
+            "Forehead kisses daily 😘",
+            "I'll be your safe place 🏠",
+            "Grow old with you 👴👵",
+            "Silly selfies together 🤳",
+            "I'll share my food 🍕",
+            "Respect you always 🙏",
+            "Build dreams together 🏗️"
+        ];
+
+        let score = 0;
+        let timeLeft = 60;
+        let gameInterval;
+        let promiseInterval;
+        let caughtPromises = [];
+        let playerX = 50;
+
+        // Create floating hearts background
+        function createHearts() {
+            const heartBg = document.getElementById('heartBg');
+            for (let i = 0; i < 15; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'heart';
+                heart.textContent = '💕';
+                heart.style.left = Math.random() * 100 + '%';
+                heart.style.animationDelay = Math.random() * 10 + 's';
+                heart.style.animationDuration = (10 + Math.random() * 5) + 's';
+                heartBg.appendChild(heart);
+            }
+        }
+
+        // Move player
+        function movePlayer(e) {
+            const gameArea = document.getElementById('gameArea');
+            const player = document.getElementById('player');
+            const rect = gameArea.getBoundingClientRect();
+            
+            let x;
+            if (e.type === 'touchmove') {
+                x = e.touches[0].clientX - rect.left;
+            } else {
+                x = e.clientX - rect.left;
+            }
+            
+            playerX = Math.max(40, Math.min(x, rect.width - 40));
+            player.style.left = playerX - 40 + 'px';
+        }
+
+        // Create falling promise
+        function createPromise() {
+            const gameArea = document.getElementById('gameArea');
+            const promise = document.createElement('div');
+            promise.className = 'falling-promise';
+            promise.textContent = ['💝', '💖', '💕', '💗', '💘'][Math.floor(Math.random() * 5)];
+            promise.style.left = Math.random() * (gameArea.offsetWidth - 70) + 'px';
+            
+            const duration = 3 + Math.random() * 2;
+            promise.style.animationDuration = duration + 's';
+            
+            const promiseIndex = Math.floor(Math.random() * promises.length);
+            promise.dataset.promiseIndex = promiseIndex;
+            
+            gameArea.appendChild(promise);
+
+            // Check collision
+            const checkCollision = setInterval(() => {
+                const promiseRect = promise.getBoundingClientRect();
+                const player = document.getElementById('player');
+                const playerRect = player.getBoundingClientRect();
+
+                if (promiseRect.bottom >= playerRect.top &&
+                    promiseRect.top <= playerRect.bottom &&
+                    promiseRect.right >= playerRect.left &&
+                    promiseRect.left <= playerRect.right) {
+                    
+                    score++;
+                    document.getElementById('score').textContent = score;
+                    caughtPromises.push(promises[promiseIndex]);
+                    promise.remove();
+                    clearInterval(checkCollision);
+                }
+
+                if (promiseRect.top > gameArea.offsetHeight) {
+                    promise.remove();
+                    clearInterval(checkCollision);
+                }
+            }, 50);
+        }
+
+        // Start game
+        function startGame() {
+            document.querySelector('.intro-screen').classList.remove('active');
+            document.querySelector('.game-screen').classList.add('active');
+            
+            score = 0;
+            timeLeft = 60;
+            caughtPromises = [];
+            document.getElementById('score').textContent = score;
+            document.getElementById('timer').textContent = timeLeft;
+
+            const gameArea = document.getElementById('gameArea');
+            gameArea.addEventListener('mousemove', movePlayer);
+            gameArea.addEventListener('touchmove', movePlayer);
+
+            // Timer
+            gameInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+
+            // Create promises
+            promiseInterval = setInterval(() => {
+                createPromise();
+            }, 800);
+        }
+
+        // End game
+        function endGame() {
+            clearInterval(gameInterval);
+            clearInterval(promiseInterval);
+            
+            const gameArea = document.getElementById('gameArea');
+            gameArea.removeEventListener('mousemove', movePlayer);
+            gameArea.removeEventListener('touchmove', movePlayer);
+            
+            // Clear remaining promises
+            document.querySelectorAll('.falling-promise').forEach(p => p.remove());
+            
+            document.querySelector('.game-screen').classList.remove('active');
+            document.querySelector('.result-screen').classList.add('active');
+            
+            document.getElementById('finalScore').textContent = score;
+            
+            // Love message based on score
+            let message = '';
+            if (score >= 40) {
+                message = "WOW Dharun! You're absolutely amazing! Just like how you caught all these promises, you've caught my heart completely. You're the best thing that ever happened to me! 💕✨";
+            } else if (score >= 25) {
+                message = "Incredible, Dharun! You caught so many promises, just like how you've captured all my attention and love. Every day with you is a blessing! 💖🌟";
+            } else if (score >= 15) {
+                message = "Great job, my love! These promises are just the beginning. I promise to make every moment with you special, just like you make my life complete! 💝💫";
+            } else {
+                message = "Dharun, it doesn't matter how many you caught - every single promise is yours! My love for you is infinite, just like my commitment to making you happy! 💗🌈";
+            }
+            
+            document.getElementById('loveMessage').textContent = message;
+            
+            // Display caught promises
+            const promiseList = document.getElementById('promiseList');
+            promiseList.innerHTML = '';
+            
+            const uniquePromises = [...new Set(caughtPromises)];
+            const displayPromises = uniquePromises.length > 0 ? uniquePromises : promises.slice(0, 8);
+            
+            displayPromises.forEach(promise => {
+                const card = document.createElement('div');
+                card.className = 'promise-card';
+                card.textContent = promise;
+                promiseList.appendChild(card);
+            });
+        }
+
+        // Restart game
+        function restartGame() {
+            document.querySelector('.result-screen').classList.remove('active');
+            document.querySelector('.intro-screen').classList.add('active');
+        }
+
+        // Initialize
+        createHearts();
+    </script>
+</body>
+</html>
